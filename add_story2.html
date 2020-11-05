@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<title>صفحة اضافة القصة</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+<link rel="stylesheet" href="style.css?v=1">
+<style>
+    body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
+</style>
+<body class="w3-light-grey">
+
+<!-- w3-content defines a container for fixed size centered content, 
+and is wrapped around the whole page content, except for the footer in this example -->
+<div class="w3-content" style="max-width:1400px">
+
+    <!-- Header -->
+    <header class="w3-container w3-center w3-padding-32">
+        <img src="logo.jpg" alt="" width="100" height="100" />
+        <p>مرحبا بكم في موقع <span class="w3-tag">قصتي</span></p>
+        <div class="topnav">
+            <a href="index.php">الرئيسية</a>
+            <a href="about.html">عن الموقع</a>
+            <a href="what_is_story.html">ما هي القصص الاجتماعية</a>
+            <a class="active" href="add_story2.html">أضف قصة</a>
+            <a href="contactus.html">اتصل بنا</a>
+        </div>
+    </header>
+
+    <!-- Grid -->
+    <div class="w3-row">
+        <div class="w3-col 20 s12">
+            <div class="w3-card-4 w3-margin w3-white">
+                <form action="upload_story.php" class="add_story_form" method="post" enctype="multipart/form-data" onsubmit="return upload_data(event)">
+                    
+                    <div class="input">
+                        <input type="text" name="title" id="title" placeholder="اكتب عنوان القصة" required />
+                    </div>
+                    <hr/>
+
+                    <div id="parts">
+
+                        <div class="input">
+                            <textarea name="body1" id="body1" cols="30" rows="10" placeholder="اكتب الجزء الاول من القصة" required ></textarea>
+                        </div>
+                        <div class="input">
+                            <label for="image">الصورة الاولى</label>
+                            <input type="file" class="files" name="image1" id="image1" required />
+                            <div id="recoredAudioBox1"></div>                            
+                            <button type="button" id="audio1" class="audio" onclick="start_recording(1)" >تسجيل صوت للجزء رقم 1</button>
+                        </div>
+                        <hr>
+                    
+                    </div>
+                    
+                    <!-- <div id="recoredAudioBox"></div> -->
+                    <div class="float_button">
+                        <center>
+                            <button type="button" class="center" onclick="add_part()" >اضف جزء آخر</button>
+                        </center>
+                    </div>
+                    <hr>
+                    <div>
+                        <input type="submit" id="submit" name="submit" value="ارفع القصة">
+                    </div>
+                </form>               
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="w3-container w3-dark-grey w3-padding-32 w3-margin-top">
+        <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a></p>
+    </footer>
+
+</div>
+
+<script src="jquery-1.11.0.min.js"></script>
+<script>
+    var recoring_started = false;
+    var device;
+    var items = []; 
+    var recorder;
+    var blob = [];
+    var partValue = 1;
+    var fd = new FormData();
+
+    function add_part(){
+        ++partValue;
+        var part = document.getElementById('parts');
+        var childs = '<div class="input">'+
+                            '<textarea name="body'+partValue+'" id="body'+partValue+'" cols="30" rows="10" placeholder="اكتب الجزء الاول من القصة" required></textarea>'+
+                        '</div>'+
+                        '<div class="input">'+
+                            '<label for="image">الصورة رقم '+partValue+'</label>' +
+                            '<input type="file" class="files" name="image'+partValue+'" id="image'+partValue+'" required />' +
+                            '<div id="recoredAudioBox'+partValue+'"></div>' +
+                            '<button type="button" id="audio'+partValue+'" class="audio" onclick="start_recording('+partValue+')" >تسجيل صوت للجزء رقم '+partValue+'</button>' +
+                        '</div>'+
+                        '<hr>';
+        part.insertAdjacentHTML('beforeend' , childs);
+        //part.innerHTML += childs;
+    }
+
+    function start_recording(partNum){
+
+        var audioButton = document.getElementById('audio'+partNum);
+
+        if(recoring_started == false){
+            recoring_started = true;
+            items = [];
+            audioButton.innerText = 'إيقاف التسجيل';
+
+            // here get start recording
+            //if (navigator.getUserMedia) {                
+            if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){    
+                device = navigator.mediaDevices.getUserMedia({audio:true});                    
+                device.then( stream => {
+                    recorder = new MediaRecorder(stream);        
+                    recorder.ondataavailable = e => {
+                        items.push(e.data)                                        
+                    }
+                    recorder.start(200);  
+                    setTimeout(() => {
+                        recoring_started = false;
+                        audioButton.innerText = 'تسجيل صوت جديد'
+                        if(recorder.state == 'recording'){
+                            recorder.stop();                        
+                            if(recorder.state == 'inactive'){
+                                //blob = new Blob(items , {type : 'audio/mpeg'});
+                                blob.push(new Blob(items , {type : 'audio/mpeg'}));
+                                var audio = document.getElementById('recoredAudioBox'+partNum);
+                                if(audio.firstChild != null){
+                                    audio.removeChild(audio.childNodes[0])
+                                }
+                                var mainaudio = document.createElement('audio');
+                                mainaudio.setAttribute('controls' , 'controls');                            
+                                audio.appendChild(mainaudio);
+                                //mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob)+'" type="audio/mpeg"/>';
+                                mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob[blob.length-1])+'" type="audio/mpeg"/>';
+
+                                items = [];
+
+                                var reader = new FileReader();                
+                                reader.onload = function(event) {
+                                    // Render thumbnail.
+                                    console.log('audio'+(blob.length))
+                                    fd.append('audio'+(blob.length), event.target.result);
+                                    //console.log(e.target.result)
+                                };
+                                // Read in the image file as a data URL.
+                                reader.readAsDataURL(blob[blob.length-1]);
+                            }
+                        }
+                    }, 70000)      
+                })
+            }else{
+                alert('no audio support')
+                console.log('no audio support')
+            }
+
+        }else{
+            recoring_started = false;
+            audioButton.innerText = 'تسجيل صوت جديد'
+            if(recorder.state == 'recording'){
+                recorder.stop();
+            }            
+            if(recorder.state == 'inactive'){
+                //blob = new Blob(items , {type : 'audio/mpeg'});
+                blob.push(new Blob(items , {type : 'audio/mpeg'}));
+                var audio = document.getElementById('recoredAudioBox'+partNum);
+                if(audio.firstChild != null){
+                    audio.removeChild(audio.childNodes[0])
+                }
+                var mainaudio = document.createElement('audio');
+                mainaudio.setAttribute('controls' , 'controls');                
+                audio.appendChild(mainaudio);
+                //mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob)+'" type="audio/mpeg"/>';
+                mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob[blob.length-1])+'" type="audio/mpeg"/>';
+                items = [];
+
+                var reader = new FileReader();                
+                reader.onload = function(event) {
+                    // Render thumbnail.
+                    console.log('audio'+(blob.length))
+                    fd.append('audio'+(blob.length), event.target.result);
+                    //console.log(e.target.result)
+                };
+                // Read in the image file as a data URL.
+                reader.readAsDataURL(blob[blob.length-1]);
+            }            
+        }
+        
+    }
+
+    function upload_data(e){
+        e.preventDefault();
+        send_data();
+        var submit = document.getElementById("submit");
+        submit.innerText = 'جاري اضافة القصة';
+        submit.disabled = true;
+        // if(blob == null){
+        //     upload_without_audio();
+        // }else{
+        //     upload_with_audio(blob);
+        // }
+        return false;
+    }
+
+    async function send_data(){  
+                
+        fd.append('title', document.getElementById("title").value);
+        
+        // add body and image files data
+        for(var x = 0; x < partValue; x++){            
+            fd.append('body'+(x+1) , document.getElementById("body"+(x+1)).value);
+            fd.append('image'+(x+1) , $('#image'+(x+1))[0].files[0]);
+        }
+
+        fd.append('total_audio' , blob.length);
+        fd.append('total_text' , partValue);
+
+        // add audio fields
+        /*for (var i = 0; i < blob.length; i++) {
+            // Closure to capture the file information.
+            await (function(file) {
+                var reader = new FileReader();                
+                reader.onload = function(e) {
+                    // Render thumbnail.
+                    console.log('audio'+(i))
+                    fd.append('audio'+(i+1), event.target.result);
+                    //console.log(e.target.result)
+                };
+                // Read in the image file as a data URL.
+                reader.readAsDataURL(file);
+            })(blob[i]);
+        }*/
+
+       
+
+        $.ajax({
+            type: 'POST',
+            url: 'StoryUpload.php',
+            data: fd,
+            processData: false,
+            contentType: false
+        }).done(function(data) {
+
+            console.log(data);
+
+            var submit = document.getElementById("submit");
+            submit.innerText = 'تم إضافة القصة';    
+            submit.disabled = true;            
+            if(data == 1){
+                alert('تم اضافة القصة بنجاح');
+                window.location.href = "index.php";
+            }else{
+                alert(data);
+            }
+
+            //window.location.href = "story/index.php";                
+            //console.log(data);
+            //log.innerHTML += "\n" + data;
+        }).fail(function(data){
+            // var submit = document.getElementById("submit");
+            // submit.innerText = 'أضف القصة';
+            // submit.disabled = false;
+            alert('حدث خطأ ما حاول مرة أخرى')
+        });
+
+    }
+
+    function upload_with_audio(mp3Data){
+        var reader = new FileReader();
+		reader.onload = function(event){
+			var fd = new FormData();
+			var mp3Name = encodeURIComponent('audio_recording_' + new Date().getTime() + '.mp3');
+			console.log("mp3name = " + mp3Name);
+            //fd.append('fname', mp3Name);
+            fd.append('title', document.getElementById("title").value);
+            fd.append('body', document.getElementById("body").value);
+            fd.append('body2', document.getElementById("body2").value);
+            fd.append('image' , $('#image')[0].files[0]);
+            fd.append('image2' , $('#image2')[0].files[0]);
+			fd.append('audio', event.target.result);
+			$.ajax({
+				type: 'POST',
+				url: 'upload_story.php',
+				data: fd,
+				processData: false,
+				contentType: false
+			}).done(function(data) {
+                var submit = document.getElementById("submit");
+                submit.innerText = 'تم إضافة القصة';                
+                if(data == 1){
+                    alert('تم اضافة القصة بنجاح');
+                    window.location.href = "/story/index.php";
+                }else{
+                    alert(data);
+                }
+                //window.location.href = "story/index.php";                
+				//console.log(data);
+				//log.innerHTML += "\n" + data;
+			}).fail(function(data){
+                var submit = document.getElementById("submit");
+                submit.innerText = 'أضف القصة';
+                submit.disabled = false;
+                alert('حدث خطأ ما حاول مرة أخرى')
+            });
+		};
+		reader.readAsDataURL(mp3Data);        
+    }
+
+    function upload_without_audio(){
+        var fd = new FormData();
+        fd.append('title', document.getElementById("title").value);
+        fd.append('body', document.getElementById("body").value);            
+        fd.append('body2', document.getElementById("body2").value);
+        fd.append('image' , $('#image')[0].files[0]);
+        fd.append('image2' , $('#image2')[0].files[0]);        
+        $.ajax({
+            type: 'POST',
+            url: 'upload_story.php',
+            data: fd,
+            processData: false,
+            contentType: false
+        }).done(function(data) {    
+            var submit = document.getElementById("submit");
+            submit.innerText = 'تم إضافة القصة';            
+            if(data == 1){
+                alert('تم اضافة القصة بنجاح');
+                window.location.href = "/story/index.php";
+            }else{
+                alert(data);
+            }
+            
+            //console.log(data);
+            //log.innerHTML += "\n" + data;
+        }).fail(function(data){
+            var submit = document.getElementById("submit");
+            submit.innerText = 'أضف القصة';
+            submit.disabled = false;
+            alert('حدث خطأ ما حاول مرة أخرى')
+        });
+    }
+
+</script>
+</body>
+</html>
+<!-- more info -->
+<!-- https://stackoverflow.com/questions/21366222/record-and-upload-to-server-audio-with-html5-flash -->

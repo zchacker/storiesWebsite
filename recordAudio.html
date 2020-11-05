@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Audio</title>
+</head>
+<body>
+    <h1>مرحبا بكم</h1>
+    <div id="audio"></div>
+    <input type="file" name="image" id="image" />
+    <button id="start_record" onclick="start_recording()" >سجل الصوت</button>
+    <button id="start_record" onclick="stop_recording()" >توقف</button>
+    <button id="upload" onclick="upload()">رفع الملف</button>
+    <audio controls="controls">
+        <source src="http://localhost/story/recordings/audio_recording_2020-10-26-00-04-26.mp3" type="audio/mpeg"/>
+    </audio>
+</body>
+
+<script src="jquery-1.11.0.min.js"></script>
+<script>
+    var device;// = navigator.mediaDevices.getUserMedia({audio:true});
+    var items = []; 
+    var recorder;
+    var blob;
+
+    function start_recording(){
+        
+        if (navigator.getUserMedia) {
+
+            console.log('getUserMedia supported.');
+            device = navigator.mediaDevices.getUserMedia({audio:true});
+                 
+            device.then( stream => {            
+                recorder = new MediaRecorder(stream);        
+                recorder.ondataavailable = e => {
+                    items.push(e.data)                    
+                }
+                recorder.start(200);        
+            })
+        }
+    }
+
+    function stop_recording(){
+        recorder.stop();
+        if(recorder.state == 'inactive'){
+            blob = new Blob(items , {type : 'audio/mpeg'});
+            var audio = document.getElementById('audio');
+            var mainaudio = document.createElement('audio');
+            mainaudio.setAttribute('controls' , 'controls');
+            audio.appendChild(mainaudio);
+            mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob)+'" type="audio/mpeg"/>';
+        }
+    }
+
+    function upload(){
+        if(blob == null){
+            alert("no audio");
+            return;
+        }
+        uploadAudio(blob);
+    }
+
+    function uploadAudio(mp3Data){
+		var reader = new FileReader();
+		reader.onload = function(event){
+			var fd = new FormData();
+			var mp3Name = encodeURIComponent('audio_recording_' + new Date().getTime() + '.mp3');
+			console.log("mp3name = " + mp3Name);
+            //fd.append('fname', mp3Name);
+            fd.append('title', 'عنوان القصة');
+            fd.append('story_body', 'المحتوى الخاص بالقصة');
+            fd.append('image' , $('#image')[0].files[0]);
+			fd.append('audio', event.target.result);
+			$.ajax({
+				type: 'POST',
+				url: 'upload_story.php',
+				data: fd,
+				processData: false,
+				contentType: false
+			}).done(function(data) {
+				//console.log(data);
+				//log.innerHTML += "\n" + data;
+			});
+		};
+		reader.readAsDataURL(mp3Data);
+    }
+    
+    /*if (navigator.getUserMedia) {
+
+        console.log('getUserMedia supported.');
+       
+        var device = navigator.mediaDevices.getUserMedia({audio:true});
+        var items = [];        
+
+        device.then( stream => {            
+            var recorder = new MediaRecorder(stream);        
+            recorder.ondataavailable = e => {
+                items.push(e.data)                
+                if(recorder.state == 'inactive'){
+                    // var blob = new Blob(items , {type : 'audio/mpeg'});
+                    // var audio = document.getElementById('audio');
+                    // var mainaudio = document.createElement('audio');
+                    // mainaudio.setAttribute('controls' , 'controls');
+                    // audio.appendChild(mainaudio);
+                    // mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob)+'" type="audio/mpeg"/>';
+                }
+            }
+
+            //recorder.start(100);
+            setTimeout(() => {
+                recorder.stop();
+                if(recorder.state == 'inactive'){
+                    var blob = new Blob(items , {type : 'audio/mpeg'});
+                    var audio = document.getElementById('audio');
+                    var mainaudio = document.createElement('audio');
+                    mainaudio.setAttribute('controls' , 'controls');
+                    audio.appendChild(mainaudio);
+                    mainaudio.innerHTML = '<source src="'+URL.createObjectURL(blob)+'" type="audio/mpeg"/>';
+                }
+            }, 5000)
+        })
+    }*/
+
+
+</script>
+</html>

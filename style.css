@@ -1,0 +1,129 @@
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;  
+  }
+  
+  .topnav {
+    overflow: hidden;
+    background-color: #333;
+  }
+  
+  .topnav a {
+    float: right;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+  }
+  
+  .topnav a:hover {
+    background-color: #ddd;
+    color: black;
+  }
+  
+  .topnav a.active {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  header{
+    direction: rtl;
+    width: 100%;  
+  }
+
+  .add_story_form{
+    width: 700px;
+    margin: auto;
+    text-align: right;
+  }
+
+  .input{
+    width: 100%;
+    direction: rtl;
+  }
+
+  input[type=text], select , textarea , input[type=file]{
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    text-align: right;
+    direction: rtl;
+    font-size: 1.5em;
+  }
+  
+  input[type=submit] {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.5em;
+  }
+  
+  input[type=submit]:hover {
+    background-color: #45a049;
+  }
+
+  label{
+    font-size: 1.2em;
+  }
+
+  .audio{
+    width: 100%;
+    background-color: #254CEC;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.5em;
+  }
+
+  .audioPlayer{
+    width: 100%;
+    background-color: #A4FA84;
+    color: white;
+    height: 70px;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.9em;
+  }
+
+  h3,a{
+    direction: rtl;
+    text-decoration: none;
+  }
+
+  .files{
+    width: 50%;
+  }
+
+
+  .float_button{  
+    width: 700px;
+    align-content: center;
+    margin: auto;
+  }
+
+  .float_button > center > button{  
+    background-color: crimson;
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.5em;
+  }
+
